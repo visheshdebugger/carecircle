@@ -14,6 +14,8 @@ import {
   Siren,
   UserRound,
   Zap,
+  BellOff,
+  BellRing,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -66,6 +68,7 @@ function doctorTone(state: string) {
 
 export default function PatientDashboard() {
   const [notificationsOpen, setNotificationsOpen] = React.useState(false);
+  const [isMuted, setIsMuted] = React.useState(false);
   const liveDoctors = useRealtimeSimulatorStore((s) => s.liveDoctors);
   const reports = useRealtimeSimulatorStore((s) => s.reports);
   const patientReports = useMemo(() => reports.filter((r) => r.patientId === "P-948271"), [reports]);
@@ -83,6 +86,7 @@ export default function PatientDashboard() {
   const lastToastIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    if (isMuted) return;
     const latest = toastQueue[0];
     if (!latest || latest.id === lastToastIdRef.current) return;
 
@@ -91,7 +95,7 @@ export default function PatientDashboard() {
       description: latest.message,
       className: "border border-white/10 bg-black/90 text-white",
     });
-  }, [toastQueue]);
+  }, [toastQueue, isMuted]);
 
   const emergencyCount = criticalEmergencies.length;
   const activeDoctorCount = liveDoctors.filter((doctor) => doctor.state !== "available").length;
@@ -124,6 +128,36 @@ export default function PatientDashboard() {
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Telemetry Mute Toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  const targetState = !isMuted;
+                  setIsMuted(targetState);
+                  toast(targetState ? "Telemetry Alerts Muted" : "Telemetry Alerts Live", {
+                    description: targetState ? "Live telemetry toasts are now silenced." : "You will now receive live hospital updates.",
+                    className: "border border-white/10 bg-black/90 text-white",
+                  });
+                }}
+                className={`inline-flex items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition cursor-pointer ${
+                  isMuted
+                    ? "border-rose-400/30 bg-rose-400/10 text-rose-300 hover:border-rose-400/60 hover:bg-rose-400/20"
+                    : "border-cyan-400/30 bg-cyan-400/10 text-cyan-300 hover:border-cyan-400/60 hover:bg-cyan-400/20 shadow-[0_0_15px_rgba(34,211,238,0.15)]"
+                }`}
+              >
+                {isMuted ? (
+                  <>
+                    <BellOff size={14} className="mr-1.5" />
+                    Alerts Muted
+                  </>
+                ) : (
+                  <>
+                    <BellRing size={14} className="mr-1.5 animate-pulse" />
+                    Alerts Live
+                  </>
+                )}
+              </button>
+
               <button
                 type="button"
                 onClick={() => setNotificationsOpen(true)}

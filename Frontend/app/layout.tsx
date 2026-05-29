@@ -33,7 +33,7 @@ export default function RootLayout({
           <RealtimeSimulatorDriver />
           <div className="min-w-0 w-full">{children}</div>
         </RouteTransition>
-        <Toaster richColors position="top-right" />
+        <Toaster richColors position="top-right" closeButton />
 
       </body>
 
