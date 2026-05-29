@@ -2,16 +2,18 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Fingerprint, User, Phone, Mail, Droplet, Calendar, Activity, ArrowRight, ShieldCheck } from "lucide-react";
+import { Fingerprint, User, Phone, Mail, Droplet, Calendar, Activity, ArrowRight, ShieldCheck, CheckCircle2, ScanFace } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function PatientAuthForm() {
   const router = useRouter();
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [isLoading, setIsLoading] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanSuccess, setScanSuccess] = useState(false);
 
-  // Form states
-  const [patientId, setPatientId] = useState("");
+  // Form states (prefilled with P-948271 for seamless hackathon demo)
+  const [patientId, setPatientId] = useState("P-948271");
   const [formData, setFormData] = useState({
     name: "",
     age: "",
@@ -45,8 +47,51 @@ export function PatientAuthForm() {
     }, 1500);
   };
 
+  const handleBiometricScan = () => {
+    setIsScanning(true);
+    setTimeout(() => {
+      setIsScanning(false);
+      setScanSuccess(true);
+      setTimeout(() => {
+        router.push("/dashboard/patient");
+      }, 800);
+    }, 2000);
+  };
+
   return (
     <div className="w-full">
+      {/* Biometric Quick Scan Option */}
+      <div className="mb-6 rounded-[22px] border border-cyan-500/20 bg-cyan-500/5 p-5 text-center">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-cyan-300/70">
+          Fast Biometric Access
+        </p>
+        <button
+          type="button"
+          onClick={handleBiometricScan}
+          disabled={isScanning || scanSuccess || isLoading}
+          className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full border transition-all duration-500 cursor-pointer ${
+            scanSuccess
+              ? "border-green-400 bg-green-400/20 text-green-300 shadow-[0_0_20px_rgba(74,222,128,0.2)]"
+              : isScanning
+                ? "animate-pulse border-cyan-400 bg-cyan-400/20 text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                : "border-cyan-500/30 bg-cyan-500/10 text-cyan-300 hover:scale-105 hover:bg-cyan-500/20 hover:border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+          }`}
+        >
+          {scanSuccess ? (
+            <CheckCircle2 size={28} />
+          ) : (
+            <Fingerprint size={28} className={isScanning ? "animate-pulse" : ""} />
+          )}
+        </button>
+        <p className="mt-3 text-xs text-white/50">
+          {scanSuccess
+            ? "Biometrics Verified"
+            : isScanning
+              ? "Scanning Fingerprint..."
+              : "Place Finger on Sensor or Scan Face"}
+        </p>
+      </div>
+
       {/* Mode Toggle */}
       <div className="mb-6 flex rounded-full border border-white/10 bg-black/25 p-1 backdrop-blur-md">
         <button
